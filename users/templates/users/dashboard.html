@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  #user-control {
+    position: absolute;
+    top: -40px;
+    right: -30px;
+  }
+  #user-control a {
+    color: white;
+    text-decoration: none;
+    padding: 0 8px;
+  }
+  #upload-link a {
+    padding: 10px 8px;
+    border: #2196F3 1px solid;
+    background: #4ac1f7;
+    border-radius: 5px;
+    color: white;
+    text-decoration: none;
+  }
+</style>
+<h2>Hello, {{ user.username|default:"Guest" }}!</h2>
+
+<div id="user-control">
+  {% if user.is_authenticated %}
+  <a href='{% url "logout" %}'>Logout</a>
+  <a href='{% url "password_change" %}'>Change password</a>
+  {% else %}
+  <a href='{% url "login" %}'>Login</a>
+  {% endif %}
+</div>
+<div id="upload-link">
+  {% if user.is_authenticated %}
+  <a href='{% url "inputs" %}'>Upload Images</a>
+  {% endif %}
+</div>
+{% endblock content %}

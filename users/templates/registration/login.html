@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+</style>
+<div id="userPanel">
+  <h2>Log in</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Login"/>
+  </form>
+  <a href='{% url "dashboard" %}'>Back to dashboard</a>
+  <a href='{% url "register" %}' style="float: right">Register</a>
+</div>
+{% endblock content %}
