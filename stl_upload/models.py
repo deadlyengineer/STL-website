@@ -6,7 +6,7 @@ from django.db import models
 
 # Create your models here.
 class Inputs(models.Model):
-    id = models.AutoField(primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, default=1)
     input1 = models.CharField(max_length=100)
     input2 = models.CharField(max_length=100)
     input3 = models.CharField(max_length=100)

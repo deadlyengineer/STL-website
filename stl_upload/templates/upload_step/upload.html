@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% csrf_token %}
     <title>Upload STL File</title>
     <!-- jquery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -162,6 +163,7 @@
 </head>
 <body>
 <div id="body">
+  <input type="hidden" id="url" value="{{ request.build_absolute_uri }}">
     <div id="view" style="float: left;">
         <ul>
             <li><a id="scenario_1">Scenario 1</a></li>
@@ -203,7 +205,7 @@
         <div class="stl-control">
             <label for="opacity">
                 Opacity
-                <input type="range" name="opacity" id="opacity" style="width: 100%;margin-top: 10px;" value="100"
+                <input type="range" name="opacity" id="opacity" style="width: 100%;margin-top: 10px;" value="{{ userProcess.opacity }}"
                        onchange="updateTransformedCylinder()">
             </label>
             <label for="parallel">
@@ -245,19 +247,19 @@
             <!--        </div>-->
             <div style="width: 50%; float: left; border-right: 1px solid gray;">
                 <div style="position: relative; padding: 10px;">
-                    <input type="number" name="center_x" id="center_x" value="0" hidden>
+                    <input type="number" name="center_x" id="center_x" value="{{ userProcess.center_x }}" hidden>
                     <p style="text-align: center; line-height: 20px;">X move</p>
                     <a onclick="xmp()" class="plus">+</a>
                     <a onclick="xmm()" class="minus">-</a>
                 </div>
                 <div style="position: relative; padding: 10px;">
-                    <input type="number" name="center_y" id="center_y" value="0" hidden>
+                    <input type="number" name="center_y" id="center_y" value="{{ userProcess.center_y }}" hidden>
                     <p style="text-align: center; line-height: 20px;">Y move</p>
                     <a onclick="ymp()" class="plus">+</a>
                     <a onclick="ymm()" class="minus">-</a>
                 </div>
                 <div style="position: relative; padding: 10px;">
-                    <input type="number" name="center_z" id="center_z" value="0" hidden />
+                    <input type="number" name="center_z" id="center_z" value="{{ userProcess.center_z }}" hidden />
                     <p style="text-align: center; line-height: 20px;">Z move</p>
                     <a onclick="zmp()" class="plus">+</a>
                     <a onclick="zmm()" class="minus">-</a>
@@ -266,18 +268,18 @@
             <div style="width: 50%; float: left;">
                 <div style="position: relative; padding: 10px;">
                     <p style="text-align: center; line-height: 20px;">X rotation</p>
-                    <input type="number" name="orientation_x" id="orientation_x" hidden value="0">
+                    <input type="number" name="orientation_x" id="orientation_x" hidden value="{{ userProcess.orientation_x }}">
                     <a onclick="xrp()" class="plus">+</a>
                     <a onclick="xrm()" class="minus">-</a>
                 </div>
                 <div style="position: relative; padding: 10px;">
-                    <input type="number" name="orientation_y" id="orientation_y" hidden value="0">
+                    <input type="number" name="orientation_y" id="orientation_y" hidden value="{{ userProcess.orientation_y }}">
                     <p style="text-align: center; line-height: 20px;">Y rotation</p>
                     <a onclick="yrp()" class="plus">+</a>
                     <a onclick="yrm()" class="minus">-</a>
                 </div>
                 <div style="position: relative; padding: 10px;">
-                    <input type="number" name="orientation_z" id="orientation_z" hidden value="0">
+                    <input type="number" name="orientation_z" id="orientation_z" hidden value="{{ userProcess.orientation_z }}">
                     <p style="text-align: center; line-height: 20px;">Z rotation</p>
                     <a onclick="zrp()" class="plus">+</a>
                     <a onclick="zrm()" class="minus">-</a>
@@ -301,7 +303,7 @@
         $("div.tab").hide();
         $("div#" + tabName).show();
     }
-
+    const user_id = "{{ request.user.id }}";
     // Create instances begin
     const reader = vtk.IO.Geometry.vtkSTLReader.newInstance();
     const modelReader = vtk.IO.Geometry.vtkSTLReader.newInstance();
@@ -351,14 +353,15 @@
 
     // declare and initialize the control data
     const data = {
-        center_x: 0,
-        center_y: 0,
-        center_z: 0,
-        orientation_x: 0,
-        orientation_y: 0,
-        orientation_z: 0,
-        opacity: 1,
-        filename: 'bar_model',
+        user_id: user_id,
+        center_x: {{ userProcess.center_x }},
+        center_y: {{ userProcess.center_y }},
+        center_z: {{ userProcess.center_z }},
+        orientation_x: {{ userProcess.orientation_x }},
+        orientation_y: {{ userProcess.orientation_y }},
+        orientation_z: {{ userProcess.orientation_z }},
+        opacity: {{ userProcess.opacity }},
+        filename: "{{ userProcess.filename }}",
     };
 
     function update() {
@@ -484,7 +487,26 @@
         data.orientation_z = $("input#orientation_z").val();
         data.filename = $("select#selectModel").find(":selected").val();
         console.log(data);
-        update();
+        console.log("{{ request.pah }}");
+        const url = $("input#url").val().replace('inputs', 'saveProcess');
+        const csrf_token = $("input[name='csrfmiddlewaretoken']").val();
+        console.log(csrf_token);
+        $.ajax({
+            url: url,
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrf_token,
+            },
+            type: "POST",
+            data: JSON.stringify(data),
+            success: function () {
+                console.log('success');
+                update();
+            },
+            error: function (HttpResponse) {
+                console.log(HttpResponse);
+            }
+        });
     }
 
     function xmp() {
