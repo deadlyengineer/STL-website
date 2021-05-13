@@ -2,295 +2,298 @@
 {% load static %}
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {% csrf_token %}
-    <title>Upload STL File</title>
-    <!-- jquery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!-- VTK.js -->
-    <script type="text/javascript" src="https://unpkg.com/@babel/polyfill@7.0.0/dist/polyfill.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/vtk.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+  <title>Upload STL File</title>
+  <!-- jquery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <!-- VTK.js -->
+  <script type="text/javascript" src="https://unpkg.com/@babel/polyfill@7.0.0/dist/polyfill.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/vtk.js"></script>
+  <style>
+      * {
+          box-sizing: border-box;
+      }
 
-        div#body {
-            max-width: 1200px;
-            margin: auto;
-            margin-top: 20px;
-        }
+      div#body {
+          max-width: 1200px;
+          margin: auto;
+          margin-top: 20px;
+      }
 
-        div#view ul {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-        }
+      div#view ul {
+          list-style-type: none;
+          margin: 0;
+          padding: 0;
+      }
 
-        div#view ul li {
-            float: left;
-        }
+      div#view ul li {
+          float: left;
+      }
 
-        div#view ul li a {
-            display: block;
-            padding: 5px 10px;
-            margin: 5px 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            background: #d73a49;
-            color: white;
-        }
+      div#view ul li a {
+          display: block;
+          padding: 5px 10px;
+          margin: 5px 10px;
+          border-radius: 10px;
+          cursor: pointer;
+          background: #d73a49;
+          color: white;
+      }
 
-        div#control {
-            width: 560px;
-            padding-left: 20px;
-        }
+      div#control {
+          width: 560px;
+          padding-left: 20px;
+      }
 
-        div.axis-view {
-            width: 100%;
-            height: 150px;
-            margin-bottom: 10px;
-            border: 1px solid black;
-            pointer-events: none;
-        }
+      div.axis-view {
+          width: 100%;
+          height: 150px;
+          margin-bottom: 10px;
+          border: 1px solid black;
+          pointer-events: none;
+      }
 
-        .clearfix {
-            display: table;
-            content: '';
-            clear: both;
-        }
+      .clearfix {
+          display: table;
+          content: '';
+          clear: both;
+      }
 
-        @media screen and (max-width: 1200px) {
-            div#body {
-                width: 650px;
-                margin: auto;
-                margin-bottom: 30px;
-            }
-        }
+      @media screen and (max-width: 1200px) {
+          div#body {
+              width: 650px;
+              margin: auto;
+              margin-bottom: 30px;
+          }
+      }
 
-        /* The switch - the box around the slider */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
+      /* The switch - the box around the slider */
+      .switch {
+          position: relative;
+          display: inline-block;
+          width: 60px;
+          height: 34px;
+      }
 
-        /* Hide default HTML checkbox */
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+      /* Hide default HTML checkbox */
+      .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+      }
 
-        /* The slider */
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
+      /* The slider */
+      .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          -webkit-transition: .4s;
+          transition: .4s;
+      }
 
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
+      .slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          -webkit-transition: .4s;
+          transition: .4s;
+      }
 
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
+      input:checked + .slider {
+          background-color: #2196F3;
+      }
 
-        input:focus + .slider {
-            box-shadow: 0 0 1px #2196F3;
-        }
+      input:focus + .slider {
+          box-shadow: 0 0 1px #2196F3;
+      }
 
-        input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
-        }
+      input:checked + .slider:before {
+          -webkit-transform: translateX(26px);
+          -ms-transform: translateX(26px);
+          transform: translateX(26px);
+      }
 
-        /* Rounded sliders */
-        .slider.round {
-            border-radius: 34px;
-        }
+      /* Rounded sliders */
+      .slider.round {
+          border-radius: 34px;
+      }
 
-        .slider.round:before {
-            border-radius: 50%;
-        }
+      .slider.round:before {
+          border-radius: 50%;
+      }
 
-        #control .active {
-            background: #333 !important;
-            color: white !important;
-        }
+      #control .active {
+          background: #333 !important;
+          color: white !important;
+      }
 
-        #step2Tab a {
-            font-size: 17px;
-            display: block;
-            padding: 15px 25px;
-            border: 1px solid lightgray;
-            font-weight: bolder;
-            cursor: pointer;
-            background: #eee;
-        }
+      #step2Tab a {
+          font-size: 17px;
+          display: block;
+          padding: 15px 25px;
+          border: 1px solid lightgray;
+          font-weight: bolder;
+          cursor: pointer;
+          background: #eee;
+      }
 
-        #step2Tab a.plus {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-        }
+      #step2Tab a.plus {
+          position: absolute;
+          top: 10px;
+          left: 10px;
+      }
 
-        #step2Tab a.minus {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-    </style>
+      #step2Tab a.minus {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+      }
+  </style>
 </head>
 <body>
 <div id="body">
   <input type="hidden" id="url" value="{{ request.build_absolute_uri }}">
-    <div id="view" style="float: left;">
-        <ul>
-            <li><a id="scenario_1">Scenario 1</a></li>
-            <li><a id="scenario_2">Scenario 2</a></li>
-            <li><a id="scenario_3">Scenario 3</a></li>
-            <li><a id="scenario_4">Scenario 4</a></li>
-        </ul>
-        <div class="clearfix"></div>
-        <div style="width: 100%;">
-            <div style="float: left;width: 150px;margin-right:20px;">
-                <div class="axis-view" id="x"></div>
-                <div class="axis-view" id="y"></div>
-                <div class="axis-view" id="z"></div>
-            </div>
-            <div id="stl_view" style="width: 470px; float: left;"></div>
-            <div class="clearfix"></div>
-        </div>
-    </div>
-    <div id="control" style="float: left;">
-        <div>
-            <a style="padding: 5px 10px; background: #eee;" class="stepTab active" id="step1"
-               onclick="openTab('step1Tab')">Step1</a>
-            <a style="padding: 5px 10px; background: #eee;" id="step2" class="stepTab" onclick="openTab('step2Tab')">Step2</a>
-            <a style="padding: 5px 10px; background: #eee;" id="step3" class="stepTab" onclick="openTab('step3Tab')">Step3</a>
-        </div>
-        <div>
-            <p style="padding: 5px 0;" id="unique_id">
-                <span style="font-weight: bold">Unique Case ID</span>: {{ unique_id }}
-            </p>
-        </div>
-        <div>
-            <p style="padding-bottom: 5px;">
-                <span id="input1"><span style="font-weight: bold">Input1: </span>{{ input1|default:'input1' }}&nbsp;&nbsp;&nbsp;</span>
-                <span id="input2"><span style="font-weight: bold">Input2: </span>{{ input2|default:'input2' }}&nbsp;&nbsp;&nbsp;</span>
-                <span id="input3"><span style="font-weight: bold">Input3: </span>{{ input3|default:'input3' }}&nbsp;&nbsp;&nbsp;</span>
-            </p>
-        </div>
-        <hr>
-        <div class="stl-control">
-            <label for="opacity">
-                Opacity
-                <input type="range" name="opacity" id="opacity" style="width: 100%;margin-top: 10px;" value="{{ userProcess.opacity }}"
-                       onchange="updateTransformedCylinder()">
-            </label>
-            <label for="parallel">
-                <span>Parallel projection</span>
-                <label class="switch">
-                    <input type="checkbox" id="parallel">
-                    <span class="slider round"></span>
-                </label>
-            </label>
-        </div>
-        <hr>
-        <div id="step1Tab" class="tab">
-            <input type="file" id="stl_file" class="file">
-        </div>
-        <div id="step2Tab" class="tab">
-            <div>
-                <label for="selectModel"><span
-                        style="font-weight: bold">Additional Model from cloud&nbsp;&nbsp;&nbsp;</span>
-                    <select name="stlModel" id="selectModel" onchange="updateTransformedCylinder()">
-                        {% for stlModel in stlModels %}
-                        <option value="{{stlModel.filename}}">{{stlModel.name}}</option>
-                        {% endfor %}
-                    </select>
-                </label>
-            </div>
-            <!--        <div>-->
-            <!--          <label for="count">Bar Count-->
-            <!--            <input type="range" name="width" id="count_x" max="5" min="3" value="5" id="count" onchange="updateTransformedCylinder()">-->
-            <!--            <input type="range" name="height" id="count_y" max="5" min="3" value="5" onchange="updateTransformedCylinder()">-->
-            <!--          </label>-->
-            <!--        </div>-->
-            <!--        <div>-->
-            <!--          <label for="radius">Radius-->
-            <!--            <input type="range" name="radius" max="100" min="1" value="50" step="2" id="radius" onchange="updateTransformedCylinder()">-->
-            <!--          </label>-->
-            <!--          <label for="height">Height-->
-            <!--            <input type="range" name="height" max="100" min="1" value="50" id="height" onchange="updateTransformedCylinder()">-->
-            <!--          </label>-->
-            <!--        </div>-->
-            <div style="width: 50%; float: left; border-right: 1px solid gray;">
-                <div style="position: relative; padding: 10px;">
-                    <input type="number" name="center_x" id="center_x" value="{{ userProcess.center_x }}" hidden>
-                    <p style="text-align: center; line-height: 20px;">X move</p>
-                    <a onclick="xmp()" class="plus">+</a>
-                    <a onclick="xmm()" class="minus">-</a>
-                </div>
-                <div style="position: relative; padding: 10px;">
-                    <input type="number" name="center_y" id="center_y" value="{{ userProcess.center_y }}" hidden>
-                    <p style="text-align: center; line-height: 20px;">Y move</p>
-                    <a onclick="ymp()" class="plus">+</a>
-                    <a onclick="ymm()" class="minus">-</a>
-                </div>
-                <div style="position: relative; padding: 10px;">
-                    <input type="number" name="center_z" id="center_z" value="{{ userProcess.center_z }}" hidden />
-                    <p style="text-align: center; line-height: 20px;">Z move</p>
-                    <a onclick="zmp()" class="plus">+</a>
-                    <a onclick="zmm()" class="minus">-</a>
-                </div>
-            </div>
-            <div style="width: 50%; float: left;">
-                <div style="position: relative; padding: 10px;">
-                    <p style="text-align: center; line-height: 20px;">X rotation</p>
-                    <input type="number" name="orientation_x" id="orientation_x" hidden value="{{ userProcess.orientation_x }}">
-                    <a onclick="xrp()" class="plus">+</a>
-                    <a onclick="xrm()" class="minus">-</a>
-                </div>
-                <div style="position: relative; padding: 10px;">
-                    <input type="number" name="orientation_y" id="orientation_y" hidden value="{{ userProcess.orientation_y }}">
-                    <p style="text-align: center; line-height: 20px;">Y rotation</p>
-                    <a onclick="yrp()" class="plus">+</a>
-                    <a onclick="yrm()" class="minus">-</a>
-                </div>
-                <div style="position: relative; padding: 10px;">
-                    <input type="number" name="orientation_z" id="orientation_z" hidden value="{{ userProcess.orientation_z }}">
-                    <p style="text-align: center; line-height: 20px;">Z rotation</p>
-                    <a onclick="zrp()" class="plus">+</a>
-                    <a onclick="zrm()" class="minus">-</a>
-                </div>
-            </div>
-        </div>
-        <div id="step3Tab" class="tab">
-            <button type="button" style="padding: 10px 8px;">Save images and move to Next Senarios</button>
-        </div>
-    </div>
+  <div id="view" style="float: left;">
+    <ul>
+      <li><a id="scenario_1">Scenario 1</a></li>
+      <li><a id="scenario_2">Scenario 2</a></li>
+      <li><a id="scenario_3">Scenario 3</a></li>
+      <li><a id="scenario_4">Scenario 4</a></li>
+    </ul>
     <div class="clearfix"></div>
+    <div style="width: 100%;">
+      <div style="float: left;width: 150px;margin-right:20px;">
+        <div class="axis-view" id="x"></div>
+        <div class="axis-view" id="y"></div>
+        <div class="axis-view" id="z"></div>
+      </div>
+      <div id="stl_view" style="width: 470px; float: left;"></div>
+      <div class="clearfix"></div>
+    </div>
+  </div>
+  <div id="control" style="float: left;">
+    <div>
+      <a style="padding: 5px 10px; background: #eee;" class="stepTab active" id="step1"
+         onclick="openTab('step1Tab')">Step1</a>
+      <a style="padding: 5px 10px; background: #eee;" id="step2" class="stepTab" onclick="openTab('step2Tab')">Step2</a>
+      <a style="padding: 5px 10px; background: #eee;" id="step3" class="stepTab" onclick="openTab('step3Tab')">Step3</a>
+    </div>
+    <div>
+      <p style="padding: 5px 0;" id="unique_id">
+        <span style="font-weight: bold">Unique Case ID</span>: {{ unique_id }}
+      </p>
+    </div>
+    <div>
+      <p style="padding-bottom: 5px;">
+        <span id="input1"><span style="font-weight: bold">Input1: </span>{{ input1|default:'input1' }}&nbsp;&nbsp;&nbsp;</span>
+        <span id="input2"><span style="font-weight: bold">Input2: </span>{{ input2|default:'input2' }}&nbsp;&nbsp;&nbsp;</span>
+        <span id="input3"><span style="font-weight: bold">Input3: </span>{{ input3|default:'input3' }}&nbsp;&nbsp;&nbsp;</span>
+      </p>
+    </div>
+    <hr>
+    <div class="stl-control">
+      <label for="opacity">
+        Opacity
+        <input type="range" name="opacity" id="opacity" style="width: 100%;margin-top: 10px;"
+               value="{{ userProcess.opacity }}"
+               onchange="updateTransformedCylinder()">
+      </label>
+      <label for="parallel">
+        <span>Parallel projection</span>
+        <label class="switch">
+          <input type="checkbox" id="parallel">
+          <span class="slider round"></span>
+        </label>
+      </label>
+    </div>
+    <hr>
+    <div id="step1Tab" class="tab">
+      <form action="{% url 'upload_stl' %}" id="upload_stl">
+        <input type="file" id="stl_file" class="file" name="file">
+      </form>
+    </div>
+    <div id="step2Tab" class="tab">
+      <div>
+        <label for="selectModel"><span
+                style="font-weight: bold">Additional Model from cloud&nbsp;&nbsp;&nbsp;</span>
+          <select name="stlModel" id="selectModel" onchange="updateTransformedCylinder()">
+            {% for stlModel in stlModels %}
+              <option value="{{ stlModel.filename }}">{{ stlModel.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <!--        <div>-->
+      <!--          <label for="count">Bar Count-->
+      <!--            <input type="range" name="width" id="count_x" max="5" min="3" value="5" id="count" onchange="updateTransformedCylinder()">-->
+      <!--            <input type="range" name="height" id="count_y" max="5" min="3" value="5" onchange="updateTransformedCylinder()">-->
+      <!--          </label>-->
+      <!--        </div>-->
+      <!--        <div>-->
+      <!--          <label for="radius">Radius-->
+      <!--            <input type="range" name="radius" max="100" min="1" value="50" step="2" id="radius" onchange="updateTransformedCylinder()">-->
+      <!--          </label>-->
+      <!--          <label for="height">Height-->
+      <!--            <input type="range" name="height" max="100" min="1" value="50" id="height" onchange="updateTransformedCylinder()">-->
+      <!--          </label>-->
+      <!--        </div>-->
+      <div style="width: 50%; float: left; border-right: 1px solid gray;">
+        <div style="position: relative; padding: 10px;">
+          <input type="number" name="center_x" id="center_x" value="{{ userProcess.center_x }}" hidden>
+          <p style="text-align: center; line-height: 20px;">X move</p>
+          <a onclick="xmp()" class="plus">+</a>
+          <a onclick="xmm()" class="minus">-</a>
+        </div>
+        <div style="position: relative; padding: 10px;">
+          <input type="number" name="center_y" id="center_y" value="{{ userProcess.center_y }}" hidden>
+          <p style="text-align: center; line-height: 20px;">Y move</p>
+          <a onclick="ymp()" class="plus">+</a>
+          <a onclick="ymm()" class="minus">-</a>
+        </div>
+        <div style="position: relative; padding: 10px;">
+          <input type="number" name="center_z" id="center_z" value="{{ userProcess.center_z }}" hidden/>
+          <p style="text-align: center; line-height: 20px;">Z move</p>
+          <a onclick="zmp()" class="plus">+</a>
+          <a onclick="zmm()" class="minus">-</a>
+        </div>
+      </div>
+      <div style="width: 50%; float: left;">
+        <div style="position: relative; padding: 10px;">
+          <p style="text-align: center; line-height: 20px;">X rotation</p>
+          <input type="number" name="orientation_x" id="orientation_x" hidden value="{{ userProcess.orientation_x }}">
+          <a onclick="xrp()" class="plus">+</a>
+          <a onclick="xrm()" class="minus">-</a>
+        </div>
+        <div style="position: relative; padding: 10px;">
+          <input type="number" name="orientation_y" id="orientation_y" hidden value="{{ userProcess.orientation_y }}">
+          <p style="text-align: center; line-height: 20px;">Y rotation</p>
+          <a onclick="yrp()" class="plus">+</a>
+          <a onclick="yrm()" class="minus">-</a>
+        </div>
+        <div style="position: relative; padding: 10px;">
+          <input type="number" name="orientation_z" id="orientation_z" hidden value="{{ userProcess.orientation_z }}">
+          <p style="text-align: center; line-height: 20px;">Z rotation</p>
+          <a onclick="zrp()" class="plus">+</a>
+          <a onclick="zrm()" class="minus">-</a>
+        </div>
+      </div>
+    </div>
+    <div id="step3Tab" class="tab">
+      <button type="button" style="padding: 10px 8px;">Save images and move to Next Senarios</button>
+    </div>
+  </div>
+  <div class="clearfix"></div>
 </div>
 </body>
 <script>
@@ -303,6 +306,7 @@
         $("div.tab").hide();
         $("div#" + tabName).show();
     }
+
     const user_id = "{{ request.user.id }}";
     // Create instances begin
     const reader = vtk.IO.Geometry.vtkSTLReader.newInstance();
@@ -370,7 +374,7 @@
 
         //initialize the actor and mapper for model
         const mapper_model = vtk.Rendering.Core.vtkMapper.newInstance();
-        const actor_model =  vtk.Rendering.Core.vtkActor.newInstance({
+        const actor_model = vtk.Rendering.Core.vtkActor.newInstance({
             position: [data.center_x, data.center_y, data.center_z],
         });
 
@@ -475,6 +479,7 @@
             update();
         };
         fileReader.readAsArrayBuffer(files[0]);
+        $("form#upload_stl").submit();
     }
 
     function updateTransformedCylinder() {
@@ -593,7 +598,7 @@
         updateTransformedCylinder();
     }
 
-// Change the STL file
+    // Change the STL file
     fileInput.addEventListener('change', handleFile);
 </script>
 </html>

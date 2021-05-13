@@ -28,3 +28,8 @@ class UserProcess(models.Model):
     orientation_z = models.FloatField()
     opacity = models.FloatField()
     filename = models.CharField(max_length=100)
+
+
+class UserStl(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    stl_file = models.CharField(max_length=100)

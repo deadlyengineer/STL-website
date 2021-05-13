@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework import permissions
 from rest_framework.parsers import JSONParser
 from .forms import InputsForm
-from .models import StlModels, UserProcess, Inputs
+from .models import StlModels, UserProcess, Inputs, UserStl
 import uuid
 
 
@@ -18,6 +18,21 @@ import uuid
 # def upload(request):
 #     return render(request, 'upload_step/upload.html')
 #
+@login_required
+def upload_stl(request):
+    form = {}
+    if request.method == 'POST':
+        form = InputsForm(request.POST)
+        if form.is_valid():
+            userStl = UserStl.objects.get(user_id=request.user.id)
+            if(len(userStl) == 0):
+                userStl = UserStl.objects.create(
+                    stl_file = request.FILES['file']
+                )
+            else:
+                userStl.stl_file = request.FILES['file']
+                userStl.save()
+            return JsonResponse(data=userStl, status=status.HTTP_200_OK)
 
 @login_required
 def submit_input(request):
@@ -28,12 +43,23 @@ def submit_input(request):
             userProcess = UserProcess.objects.get(user_id=request.user.id)
             stl_models = StlModels.objects.all()
 
-            inputs = Inputs.objects.get(user_id=request.user.id)
+            inputs = Inputs.objects.filter(user_id=request.user.id)
+            if(len(inputs) == 0):
+                inputs = Inputs.objects.create(
+                    input1=form.cleaned_data['input1'],
+                    input2=form.cleaned_data['input2'],
+                    input3=form.cleaned_data['input3']
+                )
+            else:
+                inputs.input1 = form.cleaned_data['input1']
+                inputs.input2 = form.cleaned_data['input2']
+                inputs.input3 = form.cleaned_data['input3']
+                inputs.save()
 
             context = {
-                'input1': form.cleaned_data['input1'],
-                'input2': form.cleaned_data['input2'],
-                'input3': form.cleaned_data['input3'],
+                'input1': inputs.input1,
+                'input2': inputs.input2,
+                'input3': inputs.input3,
                 'unique_id': str(uuid.uuid4()),
                 'stlModels': stl_models,
                 'userProcess': userProcess
