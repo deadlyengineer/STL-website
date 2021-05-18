@@ -164,6 +164,7 @@
 <body>
 <div id="body">
   <input type="hidden" id="url" value="{{ request.build_absolute_uri }}">
+  <input type="hidden" id="stl_file" value="{{ userStl.stl_file|default:'none' }}">
   <div id="view" style="float: left;">
     <ul>
       <li><a id="scenario_1">Scenario 1</a></li>
@@ -206,7 +207,7 @@
       <label for="opacity">
         Opacity
         <input type="range" name="opacity" id="opacity" style="width: 100%;margin-top: 10px;"
-               value="{{ userProcess.opacity }}"
+               value="{{ userProcess.opacity|default:'1' }}"
                onchange="updateTransformedCylinder()">
       </label>
       <label for="parallel">
@@ -219,9 +220,9 @@
     </div>
     <hr>
     <div id="step1Tab" class="tab">
-      <form action="{% url 'upload_stl' %}" id="upload_stl">
-        <input type="file" id="stl_file" class="file" name="file">
-      </form>
+      {#      <form action="{% url 'upload_stl' %}" id="upload_stl" method="POST" enctype="multipart/form-data">#}
+      <input type="file" id="stl_file" class="file" name="file">
+      {#      </form>#}
     </div>
     <div id="step2Tab" class="tab">
       <div>
@@ -250,19 +251,19 @@
       <!--        </div>-->
       <div style="width: 50%; float: left; border-right: 1px solid gray;">
         <div style="position: relative; padding: 10px;">
-          <input type="number" name="center_x" id="center_x" value="{{ userProcess.center_x }}" hidden>
+          <input type="number" name="center_x" id="center_x" value="{{ userProcess.center_x|default:'0.0' }}" hidden>
           <p style="text-align: center; line-height: 20px;">X move</p>
           <a onclick="xmp()" class="plus">+</a>
           <a onclick="xmm()" class="minus">-</a>
         </div>
         <div style="position: relative; padding: 10px;">
-          <input type="number" name="center_y" id="center_y" value="{{ userProcess.center_y }}" hidden>
+          <input type="number" name="center_y" id="center_y" value="{{ userProcess.center_y|default:'0.0' }}" hidden>
           <p style="text-align: center; line-height: 20px;">Y move</p>
           <a onclick="ymp()" class="plus">+</a>
           <a onclick="ymm()" class="minus">-</a>
         </div>
         <div style="position: relative; padding: 10px;">
-          <input type="number" name="center_z" id="center_z" value="{{ userProcess.center_z }}" hidden/>
+          <input type="number" name="center_z" id="center_z" value="{{ userProcess.center_z|default:'0.0' }}" hidden/>
           <p style="text-align: center; line-height: 20px;">Z move</p>
           <a onclick="zmp()" class="plus">+</a>
           <a onclick="zmm()" class="minus">-</a>
@@ -271,18 +272,21 @@
       <div style="width: 50%; float: left;">
         <div style="position: relative; padding: 10px;">
           <p style="text-align: center; line-height: 20px;">X rotation</p>
-          <input type="number" name="orientation_x" id="orientation_x" hidden value="{{ userProcess.orientation_x }}">
+          <input type="number" name="orientation_x" id="orientation_x" hidden
+                 value="{{ userProcess.orientation_x|default:'0.0' }}">
           <a onclick="xrp()" class="plus">+</a>
           <a onclick="xrm()" class="minus">-</a>
         </div>
         <div style="position: relative; padding: 10px;">
-          <input type="number" name="orientation_y" id="orientation_y" hidden value="{{ userProcess.orientation_y }}">
+          <input type="number" name="orientation_y" id="orientation_y" hidden
+                 value="{{ userProcess.orientation_y|default:'0.0' }}">
           <p style="text-align: center; line-height: 20px;">Y rotation</p>
           <a onclick="yrp()" class="plus">+</a>
           <a onclick="yrm()" class="minus">-</a>
         </div>
         <div style="position: relative; padding: 10px;">
-          <input type="number" name="orientation_z" id="orientation_z" hidden value="{{ userProcess.orientation_z }}">
+          <input type="number" name="orientation_z" id="orientation_z" hidden
+                 value="{{ userProcess.orientation_z|default:'0.0' }}">
           <p style="text-align: center; line-height: 20px;">Z rotation</p>
           <a onclick="zrp()" class="plus">+</a>
           <a onclick="zrm()" class="minus">-</a>
@@ -298,6 +302,7 @@
 </body>
 <script>
     openTab("step1Tab");
+    const csrf_token = $("input[name='csrfmiddlewaretoken']").val();
 
     function openTab(tabName) {
         $("a.stepTab").removeClass('active');
@@ -314,12 +319,6 @@
     const mapper = vtk.Rendering.Core.vtkMapper.newInstance();
     const actor = vtk.Rendering.Core.vtkActor.newInstance();
     const actor_xyz = vtk.Rendering.Core.vtkActor.newInstance();
-
-    // set actors and mappers
-    //actor and actor_xyz uses same mapper as they render same object
-    actor.setMapper(mapper);
-    actor_xyz.setMapper(mapper);
-    mapper.setInputConnection(reader.getOutputPort());
 
     // set containers
     const fullScreenRenderer = vtk.Rendering.Misc.vtkFullScreenRenderWindow.newInstance({
@@ -358,17 +357,31 @@
     // declare and initialize the control data
     const data = {
         user_id: user_id,
-        center_x: {{ userProcess.center_x }},
-        center_y: {{ userProcess.center_y }},
-        center_z: {{ userProcess.center_z }},
-        orientation_x: {{ userProcess.orientation_x }},
-        orientation_y: {{ userProcess.orientation_y }},
-        orientation_z: {{ userProcess.orientation_z }},
-        opacity: {{ userProcess.opacity }},
-        filename: "{{ userProcess.filename }}",
+        center_x: {{ userProcess.center_x|default:'0.0' }},
+        center_y: {{ userProcess.center_y|default:'0.0' }},
+        center_z: {{ userProcess.center_z|default:'0.0' }},
+        orientation_x: {{ userProcess.orientation_x|default:'0.0' }},
+        orientation_y: {{ userProcess.orientation_y|default:'0.0' }},
+        orientation_z: {{ userProcess.orientation_z|default:'0.0' }},
+        opacity: {{ userProcess.opacity|default:'1' }},
+        filename: "{{ userProcess.filename|default:'bar_model' }}",
     };
 
+    let savedUserStl = "{{ userStl.file|default:'none' }}";
+    savedUserStl = savedUserStl.split('static/')[1];
+
     function update() {
+        console.log(data, savedUserStl);
+
+        if(savedUserStl != 'none') {
+            reader.setUrl(`{% static '' %}${savedUserStl}`, {binary: true});
+            // set actors and mappers
+            //actor and actor_xyz uses same mapper as they render same object
+            actor.setMapper(mapper);
+            actor_xyz.setMapper(mapper);
+            mapper.setInputConnection(reader.getOutputPort());
+        }
+
         //read stl file from the server
         modelReader.setUrl(`{% static 'stlModel/' %}${data.filename}.stl`, {binary: true})
 
@@ -407,7 +420,7 @@
 
         //set opacity
         actor.getProperty().setOpacity(data.opacity);
-        actor_xyz.getProperty().setOpacity(data.opacity);
+        actor_xyz.getProperty().setOpacity(data.opacity * 100);
 
         //add actors to renderers
         renderer.addActor(actor);
@@ -461,14 +474,19 @@
     const myContainer = $("body");
     const fileContainer = $("<div id='fileContainer'></div>");
     myContainer.append(fileContainer);
-    const fileInput = document.getElementById('stl_file');
+    const fileInput = $("input#stl_file");
+
+    // check saved stl file
+    const userStl = $("input#stl_file").val();
+    console.log(userStl);
 
     // use STL Reader
-
     function handleFile(event) {
+        console.log("DDDDDDDDD");
         event.preventDefault();
         const dataTransfer = event.dataTransfer;
         const files = event.target.files || dataTransfer.files;
+        {% comment %}
         if (files.length !== 1) {
             return;
         }
@@ -479,7 +497,32 @@
             update();
         };
         fileReader.readAsArrayBuffer(files[0]);
-        $("form#upload_stl").submit();
+        {% endcomment %}
+        const formData = new FormData;
+        formData.append('user', {{ user.id }});
+        formData.append('file', files[0]);
+
+        console.log(files[0]);
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'upload' %}',
+            processData: false,
+            contentType: false,
+            headers: {
+                {#"content-type": "multipart/form-data;boundary=---------------  ",#}
+                "X-CSRFToken": csrf_token,
+            },
+            data: formData,
+            success: function (response) {
+                console.log('works');
+                console.log(response);
+                savedUserStl = response.file.split('static/')[1];
+                update();
+            },
+            error: function (HttpResponse) {
+                console.log(HttpResponse);
+            }
+        })
     }
 
     function updateTransformedCylinder() {
@@ -494,7 +537,6 @@
         console.log(data);
         console.log("{{ request.pah }}");
         const url = $("input#url").val().replace('inputs', 'saveProcess');
-        const csrf_token = $("input[name='csrfmiddlewaretoken']").val();
         console.log(csrf_token);
         $.ajax({
             url: url,
@@ -599,6 +641,7 @@
     }
 
     // Change the STL file
-    fileInput.addEventListener('change', handleFile);
+    fileInput.on('change', handleFile);
+    update();
 </script>
 </html>

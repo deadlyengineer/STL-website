@@ -2,8 +2,9 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from .models import Inputs, StlModels, UserProcess
+from .models import Inputs, StlModels, UserProcess, UserStl
 # Register your models here.
 admin.site.register(Inputs)
 admin.site.register(StlModels)
 admin.site.register(UserProcess)
+admin.site.register(UserStl)
